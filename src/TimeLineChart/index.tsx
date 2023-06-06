@@ -188,7 +188,7 @@ function TimelineChart() {
             </Grid>
             <Grid item xs={12} sm={12}>
               <Typography>
-                Selected Item: {selected?.className ?? ""}
+                Selected Item Details: {selected?.className ?? ""}
               </Typography>
             </Grid>
           </Grid>
