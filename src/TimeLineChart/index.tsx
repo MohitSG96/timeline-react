@@ -7,17 +7,41 @@ import Timeline, {
 } from "react-calendar-timeline";
 import "react-calendar-timeline/lib/Timeline.css";
 import "./style.css";
-import ItemRender from "./ItemRender";
+import itemRender from "./itemRender";
 import SundaysMarker from "./SundaysMarker";
 import groups from "./studentsGroups";
 import items from "./studentsItems";
 import keys from "./keys";
+import { Popover, Typography, Paper, Grid } from "@mui/material";
 
 function TimelineChart() {
   const [dataKeys, setDataKeys] = useState(keys);
   const [dataGroups, setDataGroups] = useState(groups);
+  const [anchorEl, setAnchorEl] = useState<any>(null);
+  const [anchorElItem, setAnchorElItem] = useState<any>(null);
+  const [selected, setSelected] = useState<any>();
 
-  const [calenderItems, setCalenderItems] = useState(items);
+  const onMouseEnter = (e: any, item: any) => {
+    setAnchorEl(e.currentTarget);
+    setAnchorElItem(item);
+  };
+
+  const onMouseLeave = (e: any, item: any) => {
+    setAnchorEl(null);
+    setAnchorElItem(null);
+  };
+
+  const [calenderItems, setCalenderItems] = useState(
+    items.map((item) => ({
+      ...item,
+      onMouseEnter: (e: any) => onMouseEnter(e, item),
+      onMouseLeave: (e: any) => onMouseLeave(e, item),
+    }))
+  );
+  const onItemClick = (itemId: Id, e: React.SyntheticEvent, time: number) => {
+    setSelected(calenderItems.find((item) => item.id === itemId));
+  };
+
   const y19 = new Date("2019/1/1");
 
   const toTimestamp = (strDate: any) => {
@@ -94,13 +118,13 @@ function TimelineChart() {
         items={calenderItems as any}
         sidebarContent="Classes"
         lineHeight={75}
-        itemRenderer={ItemRender}
+        itemRenderer={itemRender}
         defaultTimeStart={moment().add(-12, "weeks")}
         defaultTimeEnd={moment().add(12, "weeks")}
-        // maxZoom={1.5 * 365.24 * 86400 * 50}
         minZoom={1.5 * 365.24 * 86400 * 50}
         // fullUpdate
-        itemTouchSendsClick={false}
+        itemTouchSendsClick
+        onItemSelect={onItemClick}
         stackItems
         itemHeightRatio={0.75}
         // showCursorLine
@@ -108,6 +132,7 @@ function TimelineChart() {
         canResize="both"
         onItemMove={handleItemMove}
         onItemResize={handleItemResize}
+        onItemClick={onItemClick}
       >
         <TimelineMarkers>
           <TodayMarker date={moment.now()}>
@@ -124,6 +149,51 @@ function TimelineChart() {
           <SundaysMarker />
         </TimelineMarkers>
       </Timeline>
+      <Popover
+        id="mouse-over-popover"
+        sx={{
+          pointerEvents: "none",
+        }}
+        open={Boolean(anchorEl && selected?.id !== anchorElItem?.id)}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
+        transformOrigin={{ vertical: "bottom", horizontal: "center" }}
+        disableRestoreFocus
+      >
+        <Typography sx={{ p: 2 }}>The content of the Popover.</Typography>
+      </Popover>
+      <Popover
+        id="another-popover"
+        sx={{
+          pointerEvents: "none",
+        }}
+        open={Boolean(selected && selected?.id === anchorElItem?.id)}
+        anchorEl={anchorEl}
+        onClose={() => setSelected(null)}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
+        transformOrigin={{ vertical: "bottom", horizontal: "center" }}
+        disableRestoreFocus
+      >
+        <Paper>
+          <Grid container>
+            <Grid item xs={12} sm={12}>
+              <Typography>Selected Item: {selected?.title ?? ""}</Typography>
+            </Grid>
+            <Grid item xs={12} sm={12}>
+              <Typography>
+                Selected Item: {selected?.className ?? ""}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Popover>
     </>
   );
 }
